@@ -1,3 +1,34 @@
+const express = require("express");
+const Order = require("../models/Order");
+const { protect } = require("../middleware/authMiddleware");
+const router = express.Router();
+
+// POST nieuwe bestelling
+router.post("/", async (req, res) => {
+  try {
+    const { customerName, address, flavor, topping } = req.body;
+    if (!customerName || !address || !flavor || !topping) {
+      return res.status(400).json({ message: "Alle velden zijn verplicht." });
+    }
+
+    const newOrder = new Order({ customerName, address, flavor, topping });
+    await newOrder.save();
+    res.status(201).json(newOrder);
+  } catch (error) {
+    res.status(500).json({ message: "Fout bij aanmaken bestelling", error });
+  }
+});
+
+// GET alle bestellingen
+router.get("/", async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Fout bij ophalen bestellingen", error });
+  }
+});
+
 // GET bestelling per ID
 router.get("/:id", async (req, res) => {
   try {
@@ -11,8 +42,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// PATCH status van bestelling aanpassen
-router.patch("/:id", async (req, res) => {
+// PATCH status van bestelling aanpassen (alleen admin)
+router.patch("/:id", protect, async (req, res) => {
   try {
     const { status } = req.body;
     if (!["te verwerken", "verzonden", "geannuleerd"].includes(status)) {
@@ -35,8 +66,8 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// DELETE bestelling verwijderen
-router.delete("/:id", async (req, res) => {
+// DELETE bestelling verwijderen (alleen admin)
+router.delete("/:id", protect, async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);
     if (!order) {
@@ -47,3 +78,5 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: "Fout bij verwijderen bestelling", error });
   }
 });
+
+module.exports = router;
