@@ -42,7 +42,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// PATCH status van bestelling aanpassen (alleen admin)
+// PATCH status aanpassen (admin only)
 router.patch("/:id", protect, async (req, res) => {
   try {
     const { status } = req.body;
@@ -66,7 +66,7 @@ router.patch("/:id", protect, async (req, res) => {
   }
 });
 
-// DELETE bestelling verwijderen (alleen admin)
+// DELETE bestelling verwijderen (admin only)
 router.delete("/:id", protect, async (req, res) => {
   try {
     const order = await Order.findByIdAndDelete(req.params.id);
